@@ -1,12 +1,14 @@
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
- 
-app = FastAPI()
+from fastapi.responses import JSONResponse
+
+app = FastAPI(
+        title="bebot",
+        version="1.0.0"
+    )
  
 @app.get("/")
 def read_root():
-    html_content = "<h2>I am TIM!</h2>"
-    return HTMLResponse(content=html_content)
+    return ({"hello": "i'm bebot"})
 
 @app.get("/devices")
 def read_all_devices():
