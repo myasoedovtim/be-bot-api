@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Body
+from fastapi import FastAPI, Body, status, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi_mqtt import FastMQTT, MQTTConfig
 from dotenv import dotenv_values
@@ -22,8 +22,8 @@ mqtt = FastMQTT(
     config=mqtt_config
 )
 
-devices = []
-devices.append(Device("guid1","TestDevice1","HomeRobot", True, ["Forward", "Backward"], ["Distans"]))
+
+devices = {}
 
 @app.on_event("startup")
 async def startapp():
@@ -35,12 +35,16 @@ async def shutdown():
 
 @mqtt.on_connect()
 def connect(client, flags, rc, properties):
-    mqtt.client.subscribe("/mqtt") #subscribing mqtt topic
+    mqtt.client.subscribe("/bebot")
     print("Connected to mqtt: ", client, flags, rc, properties)
 
 @mqtt.on_message()
 async def message(client, topic, payload, qos, properties):
     print("Received message: ",topic, payload.decode(), qos, properties)
+    device = payload.decode(Device)
+    if(topic=="/bebot" and devices.device_id not in devices):
+        devices[device.device_id] = device
+
 
 @mqtt.on_disconnect()
 def disconnect(client, packet, exc=None):
@@ -58,13 +62,21 @@ def read_root():
 def get_devices():
     return devices
 
-@app.post("/bebot/api/v1.0/device")
-def add_device(data = Body()):
-    devices.append(Device(data["id"], data["name"], data["type"], data["status"], data["actions"], data["sensors"]))
-    return devices
+@app.post("/bebot/api/v1.0/devices", status_code=status.HTTP_201_CREATED)
+def add_device(device : Device):
+    if device.device_id in devices:
+        raise HTTPException(status_code=400, detail="Device already exists")
+    devices[device.device_id] = device
+    return device
+
+@app.get("/bebot/api/v1.0/devices/{device_id}", response_model=Device)
+async def get_device(device_id: str):
+    if device_id not in devices:
+        raise HTTPException(status_code=404, detail="Device not found")
+    return devices[device_id]
 
 @app.get("/bebot/api/v1.0/test/send_mqtt_message")
 async def send_mqtt_message():
-    mqtt.publish("/mqtt", "Hello from Fastapi")
+    mqtt.publish("/device", "Hello from Fastapi")
     return {"result": True,"message":"Published" }
 
