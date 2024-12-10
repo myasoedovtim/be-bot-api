@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi_mqtt import FastMQTT, MQTTConfig
 from dotenv import dotenv_values
 from be_bot_api.api.device import Device
+import jsonpickle
 
 # Загрузка переменных окружения.
 env_vars = dotenv_values(".env")
@@ -35,15 +36,15 @@ async def shutdown():
 
 @mqtt.on_connect()
 def connect(client, flags, rc, properties):
-    mqtt.client.subscribe("/bebot")
+    mqtt.client.subscribe("/bebot/to/api/init")
     print("Connected to mqtt: ", client, flags, rc, properties)
 
 @mqtt.on_message()
 async def message(client, topic, payload, qos, properties):
     print("Received message: ",topic, payload.decode(), qos, properties)
-    device = payload.decode(Device)
-    if(topic=="/bebot" and devices.device_id not in devices):
-        devices[device.device_id] = device
+    device = jsonpickle.decode(payload.decode())
+    if(topic=="/bebot/to/api/init" and device["device_id"] not in devices):
+        devices[device["device_id"]] = device
 
 
 @mqtt.on_disconnect()
@@ -77,6 +78,6 @@ async def get_device(device_id: str):
 
 @app.get("/bebot/api/v1.0/test/send_mqtt_message")
 async def send_mqtt_message():
-    mqtt.publish("/device", "Hello from Fastapi")
+    mqtt.publish("/bebot/device/id", "Hello from Fastapi")
     return {"result": True,"message":"Published" }
 
