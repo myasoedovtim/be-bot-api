@@ -37,14 +37,19 @@ async def shutdown():
 @mqtt.on_connect()
 def connect(client, flags, rc, properties):
     mqtt.client.subscribe("/bebot/to/api/init")
+    mqtt.client.subscribe("/bebot/to/api/status")
     print("Connected to mqtt: ", client, flags, rc, properties)
 
 @mqtt.on_message()
 async def message(client, topic, payload, qos, properties):
     print("Received message: ",topic, payload.decode(), qos, properties)
     device = jsonpickle.decode(payload.decode())
+    print(device)
     if(topic=="/bebot/to/api/init" and device["device_id"] not in devices):
         devices[device["device_id"]] = device
+    if(topic=="/bebot/to/api/status" and device["device_id"] in devices):
+        devices[device["device_id"]]["is_active"] = device["is_active"]
+    
 
 
 @mqtt.on_disconnect()
@@ -76,8 +81,11 @@ async def get_device(device_id: str):
         raise HTTPException(status_code=404, detail="Device not found")
     return devices[device_id]
 
-@app.get("/bebot/api/v1.0/test/send_mqtt_message")
-async def send_mqtt_message():
-    mqtt.publish("/bebot/device/id", "Hello from Fastapi")
-    return {"result": True,"message":"Published" }
+@app.get("/bebot/api/v1.0/command/forward/{device_id}/{value}")
+async def send_command_forward(device_id: str, value: int):
+    if device_id in devices:
+        mqtt.publish("/bebot/device/"+device_id, {"forward": value})
+    else:
+        raise HTTPException(status_code=404, detail="Device not found")
+    return
 
