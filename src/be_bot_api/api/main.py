@@ -87,5 +87,13 @@ async def send_command_forward(device_id: str, value: int):
         mqtt.publish("/bebot/device/"+device_id, {"forward": value})
     else:
         raise HTTPException(status_code=404, detail="Device not found")
-    return
+    return {"detail": "Ok"}
+
+@app.get("/bebot/api/v1.0/command/backward/{device_id}/{value}")
+async def send_command_backward(device_id: str, value: int):
+    if device_id in devices:
+        mqtt.publish("/bebot/device/"+device_id, {"backward": value})
+    else:
+        raise HTTPException(status_code=404, detail="Device not found")
+    return {"detail": "Ok"}
 
