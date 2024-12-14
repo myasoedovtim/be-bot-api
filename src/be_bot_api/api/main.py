@@ -6,7 +6,7 @@ from be_bot_api.api.device import Device
 import jsonpickle
 
 # Загрузка переменных окружения.
-env_vars = dotenv_values(".env")
+env_vars = dotenv_values(".env")   
 
 app = FastAPI(
         title=env_vars.get("APP_NAME"),
