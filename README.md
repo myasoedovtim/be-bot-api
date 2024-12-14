@@ -9,7 +9,7 @@
 ## Start project
 
 ```bash
- uvicorn be_bot_api.api.main:app
+ uvicorn be_bot_api.api.main:app --port 8000
 ```
 
 
