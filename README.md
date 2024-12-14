@@ -12,8 +12,23 @@
  uvicorn be_bot_api.api.main:app --port 8000
 ```
 
+## Virtual Enviroment
 
-venv
-create - python -m venv venv
-activate on windows - venv\Scripts\activate.bat
-activate on linux - source venv/bin/activate
+### Create new enviroment
+```bash
+ python -m venv venv
+```
+
+### Activate on windows
+```bash
+ venv\Scripts\activate.bat
+```
+### Activate on linux
+```bash
+ source venv/bin/activate
+```
+
+
+
+
+
