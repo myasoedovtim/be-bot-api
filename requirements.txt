@@ -2,3 +2,6 @@ fastapi[all]
 requests
 fastapi-mqtt
 jsonpickle
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
