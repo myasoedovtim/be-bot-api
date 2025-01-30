@@ -9,7 +9,7 @@
 ## Start project
 
 ```bash
- uvicorn be_bot_api.api.main:app --port 8000
+ uvicorn be_bot_api.api.main:app --host 0.0.0.0 --port 8000
 ```
 
 ## Virtual Enviroment
