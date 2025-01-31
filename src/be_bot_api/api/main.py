@@ -81,7 +81,7 @@ async def get_device(device_id: str):
         raise HTTPException(status_code=404, detail="Device not found")
     return devices[device_id]
 
-@app.get("/bebot/api/v1.0/command/forward/{device_id}/{value}")
+@app.post("/bebot/api/v1.0/command/forward/{device_id}/{value}")
 async def send_command_forward(device_id: str, value: int):
     if device_id in devices:
         mqtt.publish("/bebot/device/"+device_id, {"forward": value})
@@ -89,7 +89,23 @@ async def send_command_forward(device_id: str, value: int):
         raise HTTPException(status_code=404, detail="Device not found")
     return {"detail": "Ok"}
 
-@app.get("/bebot/api/v1.0/command/backward/{device_id}/{value}")
+@app.post("/bebot/api/v1.0/command/forward/{device_id}")
+async def send_command_drive(device_id: str):
+    if device_id in devices:
+        mqtt.publish("/bebot/device/"+device_id, {"drive": "true"})
+    else:
+        raise HTTPException(status_code=404, detail="Device not found")
+    return {"detail": "Ok"}
+
+@app.post("/bebot/api/v1.0/command/stop/{device_id}")
+async def send_command_stop(device_id: str):
+    if device_id in devices:
+        mqtt.publish("/bebot/device/"+device_id, {"stop": "true"})
+    else:
+        raise HTTPException(status_code=404, detail="Device not found")
+    return {"detail": "Ok"}
+
+@app.post("/bebot/api/v1.0/command/backward/{device_id}/{value}")
 async def send_command_backward(device_id: str, value: int):
     if device_id in devices:
         mqtt.publish("/bebot/device/"+device_id, {"backward": value})
