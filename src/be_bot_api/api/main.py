@@ -9,7 +9,7 @@ import jsonpickle
 tags_metadata = [
     {
         "name": "get devices",
-        "description": "Получить список с данными всех зарегистрированных устройст.",
+        "description": "Получить список с данными всех зарегистрированных устройств.",
     },
     {
         "name": "post devices",
@@ -25,11 +25,15 @@ tags_metadata = [
     },
     {
         "name": "put stop",
-        "description": "Отправить команду остановиться",
+        "description": "Отправить команду остановиться.",
     },
     {
         "name": "put backward",
         "description": "Отправить команду движения назад на определенное расстояние (мм).",
+    },
+    {
+        "name": "put backward",
+        "description": "Отправить команду поворота (градусы, положительное значение - по часовой стрелке).",
     },
     {
         "name": "get getsensor",
@@ -118,6 +122,14 @@ async def get_device(device_id: str):
 async def send_command_forward(device_id: str, value: int):
     if device_id in devices:
         mqtt.publish("/bebot/device/"+device_id, {"forward": value})
+    else:
+        raise HTTPException(status_code=404, detail="Device not found")
+    return {"detail": "Ok"}
+
+@app.put("/bebot/api/v1.0/command/turn/{device_id}/{value}", tags=["put turn"])
+async def send_command_turn(device_id: str, value: int):
+    if device_id in devices:
+        mqtt.publish("/bebot/device/"+device_id, {"turn": value})
     else:
         raise HTTPException(status_code=404, detail="Device not found")
     return {"detail": "Ok"}
