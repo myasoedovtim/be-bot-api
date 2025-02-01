@@ -5,12 +5,45 @@ from dotenv import dotenv_values
 from be_bot_api.api.device import Device
 import jsonpickle
 
+# Описания методов
+tags_metadata = [
+    {
+        "name": "get devices",
+        "description": "Получить список с данными всех зарегистрированных устройст.",
+    },
+    {
+        "name": "post devices",
+        "description": "Зарегистрировать новое устройство.",
+    },
+    {
+        "name": "get device by id",
+        "description": "Получить данные устройства по идентификатору.",
+    },
+    {
+        "name": "put forward",
+        "description": "Отправить команду движения вперед на определенное расстояние (мм, 0 - без ограничения).",
+    },
+    {
+        "name": "put stop",
+        "description": "Отправить команду остановиться",
+    },
+    {
+        "name": "put backward",
+        "description": "Отправить команду движения назад на определенное расстояние (мм).",
+    },
+    {
+        "name": "get getsensor",
+        "description": "Получить данные сенсора определенного типа.",
+    },
+]
+
 # Загрузка переменных окружения.
 env_vars = dotenv_values(".env")   
 
 app = FastAPI(
         title=env_vars.get("APP_NAME"),
-        version=env_vars.get("APP_VERSION")
+        version=env_vars.get("APP_VERSION"),
+        openapi_tags=tags_metadata
     )
 
 mqtt_config = MQTTConfig()
@@ -64,24 +97,24 @@ def subscribe(client, mid, qos, properties):
 def read_root():
     return ({"hello": "i'm bebot!"})
 
-@app.get("/bebot/api/v1.0/devices")
+@app.get("/bebot/api/v1.0/devices", tags=["get devices"])
 def get_devices():
     return devices
 
-@app.post("/bebot/api/v1.0/devices", status_code=status.HTTP_201_CREATED)
+@app.post("/bebot/api/v1.0/devices", status_code=status.HTTP_201_CREATED, tags=["post devices"])
 def add_device(device : Device):
     if device.device_id in devices:
         raise HTTPException(status_code=400, detail="Device already exists")
     devices[device.device_id] = device
     return device
 
-@app.get("/bebot/api/v1.0/devices/{device_id}", response_model=Device)
+@app.get("/bebot/api/v1.0/devices/{device_id}", response_model=Device, tags=["get device by id"])
 async def get_device(device_id: str):
     if device_id not in devices:
         raise HTTPException(status_code=404, detail="Device not found")
     return devices[device_id]
 
-@app.post("/bebot/api/v1.0/command/forward/{device_id}/{value}")
+@app.put("/bebot/api/v1.0/command/forward/{device_id}/{value}", tags=["put forward"])
 async def send_command_forward(device_id: str, value: int):
     if device_id in devices:
         mqtt.publish("/bebot/device/"+device_id, {"forward": value})
@@ -89,15 +122,7 @@ async def send_command_forward(device_id: str, value: int):
         raise HTTPException(status_code=404, detail="Device not found")
     return {"detail": "Ok"}
 
-@app.post("/bebot/api/v1.0/command/forward/{device_id}")
-async def send_command_drive(device_id: str):
-    if device_id in devices:
-        mqtt.publish("/bebot/device/"+device_id, {"drive": "true"})
-    else:
-        raise HTTPException(status_code=404, detail="Device not found")
-    return {"detail": "Ok"}
-
-@app.post("/bebot/api/v1.0/command/stop/{device_id}")
+@app.put("/bebot/api/v1.0/command/stop/{device_id}", tags=["put stop"])
 async def send_command_stop(device_id: str):
     if device_id in devices:
         mqtt.publish("/bebot/device/"+device_id, {"stop": "true"})
@@ -105,7 +130,7 @@ async def send_command_stop(device_id: str):
         raise HTTPException(status_code=404, detail="Device not found")
     return {"detail": "Ok"}
 
-@app.post("/bebot/api/v1.0/command/backward/{device_id}/{value}")
+@app.put("/bebot/api/v1.0/command/backward/{device_id}/{value}", tags=["put backward"])
 async def send_command_backward(device_id: str, value: int):
     if device_id in devices:
         mqtt.publish("/bebot/device/"+device_id, {"backward": value})
@@ -113,7 +138,7 @@ async def send_command_backward(device_id: str, value: int):
         raise HTTPException(status_code=404, detail="Device not found")
     return {"detail": "Ok"}
 
-@app.get("/bebot/api/v1.0/command/getsensor/{device_id}")
+@app.get("/bebot/api/v1.0/command/getsensor/{device_id}", tags=["get getsensor"])
 async def send_command_getsensor(device_id: str, sensor_type: str):
     if device_id in devices:
         mqtt.publish("/bebot/device/"+device_id, {"getsensor": sensor_type})
