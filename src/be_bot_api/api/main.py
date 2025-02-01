@@ -32,7 +32,7 @@ tags_metadata = [
         "description": "Отправить команду движения назад на определенное расстояние (мм).",
     },
     {
-        "name": "put backward",
+        "name": "put turn",
         "description": "Отправить команду поворота (градусы, положительное значение - по часовой стрелке).",
     },
     {
@@ -41,12 +41,29 @@ tags_metadata = [
     },
 ]
 
+description = """
+BeBot API предназначено для взаимодействия с внешними устройствами.
+
+## devices
+
+Просмотр и добавление устройств.
+
+## command
+
+Отправка комманд на устройство, получение данных с сенсоров.
+"""
+
 # Загрузка переменных окружения.
 env_vars = dotenv_values(".env")   
 
 app = FastAPI(
         title=env_vars.get("APP_NAME"),
         version=env_vars.get("APP_VERSION"),
+        description=description,
+        contact={
+            "name": "Мясоедов Тимофей",
+            "email": "myasoedov.tim@gmail.com",
+        },
         openapi_tags=tags_metadata
     )
 
