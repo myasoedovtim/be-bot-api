@@ -1,4 +1,4 @@
-# Импорт библиотек
+# Импорт библиотек.
 from fastapi import FastAPI, Body, status, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi_mqtt import FastMQTT, MQTTConfig
@@ -6,7 +6,7 @@ from dotenv import dotenv_values
 from be_bot_api.api.device import Device
 import jsonpickle
 
-# Описания методов
+# Описания методов.
 tags_metadata = [
     {
         "name": "get devices",
@@ -42,7 +42,7 @@ tags_metadata = [
     },
 ]
 
-# Общее описание
+# Общее описание.
 description = """
 BeBot API предназначено для взаимодействия с внешними устройствами.
 
