@@ -5,6 +5,7 @@ from fastapi_mqtt import FastMQTT, MQTTConfig
 from dotenv import dotenv_values
 from be_bot_api.api.device import Device
 import jsonpickle
+import time
 
 # Описания методов.
 tags_metadata = [
@@ -85,6 +86,9 @@ mqtt = FastMQTT(
 # Объявление словаря (ключ-значение) для хранения устройств.
 devices = {}
 
+# Объявление словаря (ключ-значение) для хранения данных с сенсоров.
+sensors_data = {}
+
 # Подключение к брокеру mqtt по событию - старт приложения.
 @app.on_event("startup")
 async def startapp():
@@ -100,6 +104,7 @@ async def shutdown():
 def connect(client, flags, rc, properties):
     mqtt.client.subscribe("/bebot/to/api/init")
     mqtt.client.subscribe("/bebot/to/api/status")
+    mqtt.client.subscribe("/bebot/to/api/sensor")
     print("Connected to mqtt: ", client, flags, rc, properties)
 
  # Обработка входящего сообщения (событие on_message).
@@ -112,6 +117,8 @@ async def message(client, topic, payload, qos, properties):
         devices[device["device_id"]] = device
     if(topic=="/bebot/to/api/status" and device["device_id"] in devices):
         devices[device["device_id"]]["is_active"] = device["is_active"]
+    if(topic=="/bebot/to/api/sensor" and device["device_id"] in devices):
+        sensors_data[device["device_id"]+'_'+device["sensor_type"]] = device["value"]
     
 
 # Отображение сообщения на устройстве при событии брокера on_disconnect.
@@ -190,6 +197,8 @@ async def send_command_backward(device_id: str, value: int):
 async def send_command_getsensor(device_id: str, sensor_type: str):
     if device_id in devices:
         mqtt.publish("/bebot/device/"+device_id, {"getsensor": sensor_type})
+        while device_id+'_'+sensor_type not in sensors_data:
+            time.sleep(0.1)
+        return sensors_data[device_id+'_'+sensor_type]
     else:
         raise HTTPException(status_code=404, detail="Device not found")
-    return {"detail": "Ok"}
